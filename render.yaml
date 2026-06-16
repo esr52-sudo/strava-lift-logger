@@ -7,6 +7,8 @@ services:
       cd frontend && npm install && npm run build && cd ..
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
       - key: STRAVA_CLIENT_ID
         sync: false
       - key: STRAVA_CLIENT_SECRET
