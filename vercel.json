@@ -1,5 +1,4 @@
 {
-  "//": "render.yaml is kept in the repo as a fallback deployment option (Render/FastAPI). It is not used by Vercel.",
   "builds": [
     { "src": "api/index.py", "use": "@vercel/python" },
     {
