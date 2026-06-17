@@ -26,7 +26,7 @@ The `ANTHROPIC_API_KEY` is used only server-side and is never exposed to the bro
 
 ## Local development
 
-You need two terminals — the FastAPI backend and the Vite dev server. The Vite server proxies `/api` to the backend, so the frontend talks to `localhost:5173` and requests reach the backend on `localhost:8000`.
+You need two terminals — the FastAPI backend and the Vite dev server. The frontend dev server runs on `localhost:5173` and the backend on `localhost:8000`. (Note: the Vite dev proxy was removed for the Vercel setup — in production `/api/*` is handled by the serverless function, so frontend→backend calls aren't proxied during `npm run dev`.)
 
 **Backend:**
 
@@ -47,17 +47,24 @@ npm run dev
 
 Then open the Vite URL it prints (http://localhost:5173).
 
-## Deploy to Render
+## Deploy to Vercel
 
-This repo includes `render.yaml`. Create a new **Web Service** from the repo (or use a Blueprint deploy). Render will:
+This repo is configured for Vercel via `vercel.json`:
 
-- `pip install -r requirements.txt`
-- build the frontend (`cd frontend && npm install && npm run build`)
-- start the app with `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- The React frontend is built with `cd frontend && npm install && npm run build` and served statically from `frontend/dist` (`outputDirectory`).
+- The FastAPI app in `api/index.py` runs as a Vercel Python serverless function (dependencies from the root `requirements.txt`). All `/api/*` requests are rewritten to it, with the original path preserved, so the existing endpoints work unchanged.
+- All other routes fall back to `index.html` (single-page app).
 
-In production the FastAPI backend serves the built frontend from `frontend/dist`, so it runs as a single web service.
+To deploy: import the repo at [vercel.com](https://vercel.com) (**Add New → Project**). Before deploying, add the four environment variables in the Vercel project settings:
 
-Set the four environment variables (`STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `STRAVA_REFRESH_TOKEN`, `ANTHROPIC_API_KEY`) in the Render dashboard — they are marked `sync: false` in `render.yaml`, meaning Render prompts you for them rather than reading them from the repo. Never commit real secrets.
+- `STRAVA_CLIENT_ID`
+- `STRAVA_CLIENT_SECRET`
+- `STRAVA_REFRESH_TOKEN`
+- `ANTHROPIC_API_KEY`
+
+These are not in the repo (only `.env.example` is). After changing environment variables, trigger a redeploy for them to take effect.
+
+> `render.yaml` and the original `backend/` directory remain in the repo as a fallback Render/FastAPI deployment option, but Vercel is the active deployment target.
 
 ## Notes
 
